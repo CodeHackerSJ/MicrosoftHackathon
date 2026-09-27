@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/context/AppContext';
 import Sidebar from '@/components/Sidebar';
+import TopHeader from '@/components/TopHeader';
 import Chatbot from '@/components/Chatbot';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -19,17 +20,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-navy-950">
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)]">
       <Sidebar />
-      <main
-        className={`transition-all duration-300 min-h-screen ${
-          sidebarCollapsed ? 'ml-[68px]' : 'ml-[260px]'
+      <div
+        className={`transition-all duration-300 min-h-screen flex flex-col ${
+          sidebarCollapsed ? 'ml-[70px]' : 'ml-[260px]'
         }`}
       >
-        <div className="p-6 lg:p-8 max-w-[1600px]">
+        <TopHeader />
+        <main className="flex-1 p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
       <Chatbot />
     </div>
   );

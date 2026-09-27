@@ -3,94 +3,188 @@
 import React from 'react';
 import { applications, reviews, themes } from '@/data/mockData';
 import { notFound, useParams, useRouter } from 'next/navigation';
-import KpiCard from '@/components/KpiCard';
-import { Star, ArrowLeft, MessageSquare, AlertTriangle, ChevronRight } from 'lucide-react';
+import MetricCard from '@/components/MetricCard';
+import Badge from '@/components/Badge';
+import {
+  Star,
+  ArrowLeft,
+  Smartphone,
+  Apple,
+  MessageSquare,
+  AlertTriangle,
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+  Layers,
+  Sparkles,
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function ApplicationDetail() {
   const params = useParams();
   const router = useRouter();
   const appId = params.id as string;
-  const app = applications.find(a => a.id === appId);
+  const app = applications.find((a) => a.id === appId);
 
   if (!app) {
     notFound();
   }
 
-  const appReviews = reviews.filter(r => r.appId === appId);
+  const appReviews = reviews.filter((r) => r.appId === appId);
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <button 
+      {/* Back button */}
+      <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+        className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
       >
-         <ArrowLeft size={16} /> Back to Applications
+        <ArrowLeft size={14} />
+        <span>Back to Applications</span>
       </button>
 
-      <header className="flex items-center gap-4 border-b border-white/5 pb-6">
-        <div className="w-16 h-16 rounded-2xl bg-navy-800 flex items-center justify-center text-3xl border border-white/10 shadow-lg shrink-0">
-          {app.icon}
+      {/* App Header Card */}
+      <div className="saas-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-3xl shadow-sm shrink-0">
+            {app.icon}
+          </div>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                {app.name}
+              </h1>
+              <Badge variant={app.platform === 'android' ? 'positive' : 'secondary'}>
+                <span className="flex items-center gap-1">
+                  {app.platform === 'android' ? <Smartphone size={10} /> : <Apple size={10} />}
+                  <span>{app.platform}</span>
+                </span>
+              </Badge>
+            </div>
+            <p className="text-xs text-[var(--text-muted)] mt-1 flex items-center gap-2 flex-wrap">
+              <span>{app.category}</span>
+              <span>•</span>
+              <span className="flex items-center gap-1 text-[var(--text-primary)] font-semibold">
+                <Star size={12} className="fill-amber-400 text-amber-400" />
+                {app.rating.toFixed(1)} Rating
+              </span>
+              <span>•</span>
+              <span>{app.totalReviews.toLocaleString()} Ingested Reviews</span>
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-50 flex items-center gap-3">
-             {app.name}
-             <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold ${app.platform === 'android' ? 'bg-success-500/10 text-success-400' : 'bg-slate-700/50 text-slate-300'}`}>
-               {app.platform}
-             </span>
-          </h1>
-          <p className="text-slate-400 mt-1 flex items-center gap-3 text-sm">
-             {app.category} • <span className="flex items-center gap-1"><Star size={14} className="fill-warning-400 text-warning-400"/> {app.rating.toFixed(1)}</span> • {app.totalReviews.toLocaleString()} Reviews
-          </p>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/ai-analyzer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[var(--primary-600)] hover:bg-[var(--primary-700)] text-white text-xs font-semibold transition-colors shadow-sm"
+          >
+            <Sparkles size={13} />
+            <span>Analyze with AI</span>
+          </Link>
         </div>
-      </header>
-
-      <h2 className="text-lg font-semibold text-slate-200 mt-8 mb-4">Customer Intelligence Overview</h2>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <KpiCard title="Reviews" value={app.totalReviews.toLocaleString()} color="blue" />
-        <KpiCard title="Positive" value={`${app.positivePercent}%`} color="green" />
-        <KpiCard title="Neutral" value={`${app.neutralPercent}%`} color="cyan" />
-        <KpiCard title="Negative" value={`${app.negativePercent}%`} color="red" />
-        <KpiCard title="Avg Rating" value={app.rating.toFixed(1)} color="warning" />
-        <KpiCard title="Churn Risk" value={`${app.churnRisk}%`} color="warning" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div className="glass-card rounded-xl p-5">
-           <h3 className="text-lg font-semibold text-slate-100 mb-4 border-b border-white/5 pb-3">Top Issues for this App</h3>
-           <div className="space-y-3">
-             {themes.slice(0, 3).map((theme) => (
-                <div key={theme.id} className="p-3 rounded-lg bg-navy-800/50 border border-white/5 flex justify-between items-center group cursor-pointer hover:bg-navy-800 transition-colors">
-                  <div>
-                    <div className="font-medium text-slate-200 text-sm">{theme.name}</div>
-                    <div className="text-xs text-slate-400 mt-1">{theme.mentionCount} mentions • {theme.sentiment}% Negative</div>
+      {/* KPI Metrics Row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <MetricCard title="Total Reviews" value={app.totalReviews.toLocaleString()} color="blue" />
+        <MetricCard title="Positive" value={`${app.positivePercent}%`} color="green" />
+        <MetricCard title="Neutral" value={`${app.neutralPercent}%`} color="cyan" />
+        <MetricCard title="Negative" value={`${app.negativePercent}%`} color="red" />
+        <MetricCard title="Avg Rating" value={`${app.rating.toFixed(1)} ★`} color="warning" />
+        <MetricCard title="Churn Risk" value={`${app.churnRisk}%`} color="warning" />
+      </div>
+
+      {/* Two-Column Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Issues */}
+        <div className="saas-card p-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-4">
+            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+              Top Recurring Issues for {app.name}
+            </h3>
+            <Link
+              href="/dashboard/reviews"
+              className="text-xs text-[var(--primary-600)] font-semibold hover:underline"
+            >
+              All Themes
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {themes.slice(0, 3).map((theme) => (
+              <div
+                key={theme.id}
+                className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card-subtle)] hover:bg-[var(--bg-card)] transition-colors flex items-center justify-between"
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[var(--text-primary)]">
+                      {theme.name}
+                    </span>
+                    <Badge variant={theme.businessImpact === 'critical' ? 'critical' : 'medium'}>
+                      {theme.businessImpact}
+                    </Badge>
                   </div>
-                  <ChevronRight size={16} className="text-slate-500 group-hover:text-electric-400" />
+                  <p className="text-[11px] text-[var(--text-muted)] mt-1">
+                    {theme.mentionCount} mentions · {theme.sentiment}% Negative sentiment
+                  </p>
                 </div>
-             ))}
-           </div>
-           <Link href="/dashboard/reviews" className="block text-center text-xs text-electric-400 mt-4 hover:underline">View all themes</Link>
+                <ChevronRight size={15} className="text-[var(--text-muted)]" />
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="glass-card rounded-xl p-5">
-           <h3 className="text-lg font-semibold text-slate-100 mb-4 border-b border-white/5 pb-3">Recent Reviews</h3>
-           <div className="space-y-3">
-              {appReviews.slice(0, 3).map((review) => (
-                 <div key={review.id} className="p-3 rounded-lg bg-navy-800/50 border border-white/5">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="flex gap-1">
-                        {Array.from({length: 5}).map((_, i) => (
-                           <Star key={i} size={10} className={i < review.rating ? 'fill-warning-400 text-warning-400' : 'text-slate-700'} />
-                        ))}
-                      </div>
-                      <span className="text-[10px] text-slate-500">{review.date}</span>
+        {/* Recent Feedback */}
+        <div className="saas-card p-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-4">
+            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+              Recent Store Feedback ({app.platform})
+            </h3>
+            <Link
+              href="/dashboard/reviews"
+              className="text-xs text-[var(--primary-600)] font-semibold hover:underline"
+            >
+              Explorer
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {appReviews.slice(0, 3).map((review) => (
+              <div
+                key={review.id}
+                className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card-subtle)]"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center text-amber-500">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={11}
+                          className={
+                            i < review.rating
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-[var(--border-app)]'
+                          }
+                        />
+                      ))}
                     </div>
-                    <p className="text-xs text-slate-300 line-clamp-2 mt-1.5">{review.text}</p>
-                 </div>
-              ))}
-           </div>
-           <Link href="/dashboard/reviews" className="block text-center text-xs text-electric-400 mt-4 hover:underline">Explore all reviews</Link>
+                    <span className="text-xs font-semibold text-[var(--text-primary)]">
+                      {review.userName}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                    {review.date}
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--text-secondary)] line-clamp-2 leading-relaxed mt-1">
+                  "{review.text}"
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

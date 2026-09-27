@@ -1,78 +1,205 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { applications } from '@/data/mockData';
-import { Star, Smartphone, Apple } from 'lucide-react';
+import MetricCard from '@/components/MetricCard';
+import Badge from '@/components/Badge';
+import {
+  Star,
+  Smartphone,
+  Apple,
+  AppWindow,
+  TrendingUp,
+  TrendingDown,
+  Layers,
+  ArrowRight,
+  Plus,
+  Search,
+} from 'lucide-react';
 
 export default function ApplicationsPage() {
-  const androidApps = applications.filter(a => a.platform === 'android');
-  const iosApps = applications.filter(a => a.platform === 'ios');
+  const [platformFilter, setPlatformFilter] = useState<'all' | 'android' | 'ios'>('all');
+  const [search, setSearch] = useState('');
 
-  const AppCard = ({ app }: { app: typeof applications[0] }) => (
-    <Link href={`/dashboard/applications/${app.id}`} className="block">
-      <div className="glass-card-hover rounded-xl p-5 h-full">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-             <div className="w-12 h-12 rounded-xl bg-navy-800 flex items-center justify-center text-2xl border border-white/10 shadow-lg">
-                {app.icon}
-             </div>
-             <div>
-               <h3 className="text-base font-bold text-slate-100">{app.name}</h3>
-               <p className="text-xs text-slate-400">{app.category}</p>
-             </div>
-          </div>
-          <div className={`p-1.5 rounded-md ${app.platform === 'android' ? 'bg-success-500/10 text-success-400' : 'bg-slate-700/50 text-slate-300'}`}>
-             {app.platform === 'android' ? <Smartphone size={16} /> : <Apple size={16} />}
-          </div>
-        </div>
+  const filtered = applications.filter((app) => {
+    const matchPlatform = platformFilter === 'all' || app.platform === platformFilter;
+    const matchSearch =
+      app.name.toLowerCase().includes(search.toLowerCase()) ||
+      app.category.toLowerCase().includes(search.toLowerCase());
+    return matchPlatform && matchSearch;
+  });
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Rating</div>
-            <div className="flex items-center gap-1.5 text-slate-200">
-               <Star size={14} className="fill-warning-400 text-warning-400" />
-               <span className="font-semibold text-sm">{app.rating.toFixed(1)}</span>
-               <span className="text-xs text-slate-500">({(app.totalReviews / 1000).toFixed(1)}k)</span>
-            </div>
-          </div>
-          <div>
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Sentiment</div>
-            <div className="font-semibold text-sm text-success-400">{app.positivePercent}% Pos</div>
-          </div>
-        </div>
-
-        <div className="border-t border-white/5 pt-3 flex justify-between items-center text-xs">
-           <span className="text-slate-400">Churn Risk: <span className={app.churnRisk > 10 ? 'text-danger-400' : 'text-warning-400'}>{app.churnRisk}%</span></span>
-           <span className={app.trend >= 0 ? 'text-success-400' : 'text-danger-400'}>{app.trend >= 0 ? '+' : ''}{app.trend}% Trend</span>
-        </div>
-      </div>
-    </Link>
-  );
+  const totalReviews = applications.reduce((a, b) => a + b.totalReviews, 0);
+  const avgRating = applications.reduce((a, b) => a + b.rating, 0) / applications.length;
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <header>
-        <h1 className="text-2xl font-bold text-slate-50">Applications</h1>
-        <p className="text-slate-400 mt-1">Manage and monitor all your products across platforms.</p>
-      </header>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-app)]">
+        <div>
+          <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+            Applications & Stores
+          </h1>
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            Manage connected Google Play and Apple App Store product endpoints.
+          </p>
+        </div>
 
-      <div>
-        <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2 mb-4 border-b border-white/10 pb-2">
-           <Smartphone size={18} className="text-success-400" /> Android Applications
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {androidApps.map(app => <AppCard key={app.id} app={app} />)}
+        <button
+          onClick={() => alert('Connect New App modal: Google Play Store & Apple App Store integrations ready.')}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--primary-600)] hover:bg-[var(--primary-700)] text-white text-xs font-semibold transition-colors shadow-sm self-start sm:self-auto"
+        >
+          <Plus size={14} />
+          <span>Connect Application</span>
+        </button>
+      </div>
+
+      {/* Summary Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Active Integrations"
+          value={`${applications.length} Apps`}
+          trend={0}
+          trendLabel="3 Android · 2 iOS"
+          icon={<AppWindow size={16} />}
+          color="blue"
+        />
+        <MetricCard
+          title="Total Store Reviews"
+          value={totalReviews.toLocaleString()}
+          trend={12.4}
+          trendLabel="vs last month"
+          icon={<Layers size={16} />}
+          color="cyan"
+        />
+        <MetricCard
+          title="Portfolio Avg Rating"
+          value={`${avgRating.toFixed(2)} ★`}
+          trend={0.15}
+          trendLabel="across all stores"
+          icon={<Star size={16} />}
+          color="warning"
+        />
+        <MetricCard
+          title="Sync Health Status"
+          value="100% Operational"
+          trendLabel="All webhooks healthy"
+          icon={<Smartphone size={16} />}
+          color="green"
+        />
+      </div>
+
+      {/* Filters & Search */}
+      <div className="saas-card p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative w-full sm:w-72">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+          <input
+            type="text"
+            placeholder="Search by app name or category..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-xs saas-input placeholder:text-[var(--text-tertiary)]"
+          />
+        </div>
+
+        <div className="flex items-center gap-1.5 self-start sm:self-auto">
+          {(['all', 'android', 'ios'] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPlatformFilter(p)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                platformFilter === p
+                  ? 'bg-[var(--primary-50)] text-[var(--primary-600)] border border-[var(--primary-100)] font-semibold shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-subtle)] border border-[var(--border-app)]'
+              }`}
+            >
+              <span className="capitalize">{p === 'all' ? 'All Platforms' : p}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2 mb-4 border-b border-white/10 pb-2 mt-8">
-           <Apple size={18} className="text-slate-300" /> iOS Applications
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {iosApps.map(app => <AppCard key={app.id} app={app} />)}
-        </div>
+      {/* Applications Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filtered.map((app) => (
+          <Link key={app.id} href={`/dashboard/applications/${app.id}`} className="block group">
+            <div className="saas-card p-5 h-full flex flex-col justify-between hover:border-[var(--primary-500)] hover:shadow-md transition-all">
+              <div>
+                {/* Card Top */}
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-2xl shadow-sm">
+                      {app.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--primary-600)] transition-colors">
+                        {app.name}
+                      </h3>
+                      <p className="text-[11px] text-[var(--text-muted)]">{app.category}</p>
+                    </div>
+                  </div>
+                  <Badge variant={app.platform === 'android' ? 'positive' : 'secondary'}>
+                    <span className="flex items-center gap-1">
+                      {app.platform === 'android' ? <Smartphone size={11} /> : <Apple size={11} />}
+                      <span>{app.platform}</span>
+                    </span>
+                  </Badge>
+                </div>
+
+                {/* Metrics Breakdown */}
+                <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)] mb-4">
+                  <div>
+                    <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
+                      Store Rating
+                    </span>
+                    <div className="flex items-center gap-1 text-[var(--text-primary)] font-bold text-sm mt-0.5">
+                      <Star size={13} className="fill-amber-400 text-amber-400" />
+                      <span>{app.rating.toFixed(1)}</span>
+                      <span className="text-[10px] text-[var(--text-muted)] font-normal">
+                        ({(app.totalReviews / 1000).toFixed(1)}k)
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
+                      Sentiment
+                    </span>
+                    <div className="text-sm font-bold text-[var(--success-text)] mt-0.5">
+                      {app.positivePercent}% Pos
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sentiment Visual Bar */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] mb-1">
+                    <span>Sentiment Distribution</span>
+                    <span>{app.negativePercent}% Neg</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-[var(--border-app)] flex overflow-hidden">
+                    <div style={{ width: `${app.positivePercent}%` }} className="bg-emerald-500" />
+                    <div style={{ width: `${app.neutralPercent}%` }} className="bg-sky-400" />
+                    <div style={{ width: `${app.negativePercent}%` }} className="bg-rose-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Bottom */}
+              <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs">
+                <span className="text-[var(--text-muted)] text-[11px]">
+                  Churn Risk:{' '}
+                  <strong className={app.churnRisk > 10 ? 'text-[var(--danger-text)]' : 'text-[var(--warning-text)]'}>
+                    {app.churnRisk}%
+                  </strong>
+                </span>
+                <span className="text-[var(--primary-600)] font-semibold flex items-center gap-1 text-[11px] group-hover:translate-x-0.5 transition-transform">
+                  View Telemetry <ArrowRight size={11} />
+                </span>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
